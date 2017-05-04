@@ -1,3 +1,11 @@
+properties([
+    parameters([
+        string(defaultValue: '1.12.6', description: '', name: 'DOCKER_VERSION'),
+        string(defaultValue: 'v1.4.6', description: '', name: 'KUBECTL_VERSION')
+    ]),
+    pipelineTriggers([])
+])
+
 podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount', containers: [
 //    containerTemplate(name: 'openjdk8', image: 'openjdk:8-alpine', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'maven', image: 'maven', ttyEnabled: true, command: 'cat')
