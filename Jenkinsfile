@@ -1,46 +1,83 @@
-properties([
-    parameters([
-        string(defaultValue: '1.12.6', description: '', name: 'DOCKER_VERSION'),
-        string(defaultValue: 'v1.4.6', description: '', name: 'KUBECTL_VERSION')
-    ]),
-    pipelineTriggers([])
-])
-
-podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount', containers: [
-//    containerTemplate(name: 'openjdk8', image: 'openjdk:8-alpine', ttyEnabled: true, command: 'cat'),
+podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount', 
+    containers: [
+    containerTemplate(name: 'jnlp', image: 'jenkinsci/jnlp-slave:2.62', args: '${computer.jnlpmac} ${computer.name}'),
+    containerTemplate(name: 'docker', image: 'docker:17.04.0-ce', ttyEnabled: true, command: 'cat'),
+    containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.5.7', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'maven', image: 'maven', ttyEnabled: true, command: 'cat')
-  ]) {
+   ],
+    volumes: [
+      hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')    
+    ]) {
     
-    
-    env.DOCKER_IMAGE_NAME = 'rest-mvn-sample'
-    env.NEXUS_URL = 'hub.itgo-devops.org:18444'
-    env.NEXUS_DOCKER_IMAGE_NAME = "${env.NEXUS_URL}/hit/rest-mvn-sample"
-    // This sample demonstrates the usage of different containers in one pod
-    // and displays the versions of the runtimes and SDKs.
-    node('build-pod') {
-     container('maven') {
-       
-                stage ('Clone Repository') {
-                  checkout scm
-                }
+     node('build-pod') {
 
-                stage('Prepare Environment') {
-                    // Install Docker CLI
-                    sh """
-                    curl -Lo /tmp/docker.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
-                    mkdir /tmp/docker
-                    tar -xf /tmp/docker.tgz -C /tmp/docker
-                    find /tmp/docker -type f -executable -exec mv {} /usr/local/bin/ \\;
-                    """
-                     sh 'docker version'
-                }
+          stage ('get sources') {
+            checkout scm
 
+            env.NEXUS_URL = 'hub.itgo-devops.org:18443'
+            env.NEXUS_REPOSITORY = "${env.NEXUS_URL}/hit"
+            // write current date without newline at the end into file
+            sh "echo -n `date -u` > utc-datetime"
+            env.CONT_IMG_UTC_DATETIME = readFile 'utc-datetime'
+          }
 
-                stage('maven') {
-                        sh 'mvn -f complete/pom.xml package'
+         container('maven') {
+            stage('maven') {
+               sh 'mvn -f complete/pom.xml package'
+            }
+          }
+         container('docker') {
+            try{
+              stage ('docker Build') {
+                dockerbuild("rest-mvn-sample")
+              }
+
+              stage ('docker push') {
+                docker.withRegistry("https://${env.NEXUS_URL}", 'Nexus-Admin') {
+                  dockerpush("rest-mvn-sample")
                 }
-               
+              } // stage 'docker push' end
+            } //try end
+            finally {
+              stage('cleaning up docker images') {
+                dockercleanup("rest-mvn-sample")
+              }
+            } // finally end
+          }
+      stage('preparing deployment') {
+        echo "Replacing all latest tags with current buildnumber ${env.BUILD_NUMBER}"
+        //sh """
+        //  sed -i 's/:latest/:${env.BUILD_NUMBER}/g' k8s/*.yaml
+        //"""
       }
-     
-   }
+
+      container('kubectl') {
+        stage('deployment'){
+          sh """
+           kubectl version
+           // kubectl apply -f k8s/tc-web.yaml --namespace=tarifcheck --record=true
+           // sleep 10
+           // kubectl describe service tc-web-external --namespace=tarifcheck | grep 'LoadBalancer Ingress'
+          """
+        }
+      }
+
+    } // end build-pod
+}
+
+def dockerbuild(name) {
+  sh """
+    docker build --build-arg CONT_IMG_UTC_DATETIME="${env.CONT_IMG_UTC_DATETIME}" --build-arg CONT_IMG_VER=${name}:${env.BUILD_NUMBER} -t ${env.NEXUS_REPOSITORY}/${name}:${env.BUILD_NUMBER} -t ${env.NEXUS_REPOSITORY}/${name}:latest -f complete/Dockerfile .
+    echo ''
+    echo Image size:
+    docker images ${env.NEXUS_REPOSITORY}/${name}:${env.BUILD_NUMBER}
+    """
+}
+def dockerpush(name) {
+  sh "docker push ${env.NEXUS_REPOSITORY}/${name}:${env.BUILD_NUMBER}"
+  sh "docker push ${env.NEXUS_REPOSITORY}/${name}:latest"
+}
+def dockercleanup(name) {
+  sh "docker rmi ${env.NEXUS_REPOSITORY}/${name}:${env.BUILD_NUMBER}"
+  sh "docker rmi ${env.NEXUS_REPOSITORY}/${name}:latest"
 }
