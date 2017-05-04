@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sample-rest-ws-dt
+  namespace: sample-rest-ws
+spec:
+  replicas: 2
+  template:
+    metadata:
+      name: sample-rest-ws-dt
+      labels:
+        app: sample-rest-ws-dt
+    spec:
+      imagePullSecrets:
+        - name: docker-pull-credentials
+      containers:
+      - name: sample-rest-ws-dt
+        image: hub.itgo-devops.org:18443/hit/rest-mvn-sample:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+---
