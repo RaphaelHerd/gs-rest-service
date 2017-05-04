@@ -12,29 +12,27 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
     node('build-pod') {
      container('maven') {
        
-        stage ('Clone Repository') {
-          checkout scm
-        }
-        
-        stage('Prepare Environment') {
-            // Install Docker CLI
-            sh """
-            curl -Lo /tmp/docker.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
-            mkdir /tmp/docker
-            tar -xf /tmp/docker.tgz -C /tmp/docker
-            find /tmp/docker -type f -executable -exec mv {} /usr/local/bin/ \\;
-            """
-             sh 'docker version'
-            }
-         
-         
-        stage('maven') {
-           
-                sh 'mvn -f complete/pom.xml package'
-            }
-        
-        
-        }
+                stage ('Clone Repository') {
+                  checkout scm
+                }
+
+                stage('Prepare Environment') {
+                    // Install Docker CLI
+                    sh """
+                    curl -Lo /tmp/docker.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
+                    mkdir /tmp/docker
+                    tar -xf /tmp/docker.tgz -C /tmp/docker
+                    find /tmp/docker -type f -executable -exec mv {} /usr/local/bin/ \\;
+                    """
+                     sh 'docker version'
+                }
+
+
+                stage('maven') {
+                        sh 'mvn -f complete/pom.xml package'
+                }
+               
+      }
      
-    }
+   }
 }
