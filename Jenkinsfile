@@ -15,7 +15,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
             checkout scm
 
             env.NEXUS_URL = 'hub.itgo-devops.org:18443'
-            env.NEXUS_REPOSITORY = "${env.NEXUS_URL}/hit"
+            env.NEXUS_REPOSITORY = "${env.NEXUS_URL}/imaki"
             // write current date without newline at the end into file
             sh "echo -n `date -u` > utc-datetime"
             env.CONT_IMG_UTC_DATETIME = readFile 'utc-datetime'
