@@ -67,7 +67,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
 
 def dockerbuild(name) {
   sh """
-    docker build --build-arg CONT_IMG_UTC_DATETIME="${env.CONT_IMG_UTC_DATETIME}" --build-arg CONT_IMG_VER=${name}:${env.BUILD_NUMBER} -t ${env.NEXUS_REPOSITORY}/${name}:${env.BUILD_NUMBER} -t ${env.NEXUS_REPOSITORY}/${name}:latest -f .
+    docker build --build-arg CONT_IMG_UTC_DATETIME="${env.CONT_IMG_UTC_DATETIME}" --build-arg CONT_IMG_VER=${name}:${env.BUILD_NUMBER} -t ${env.NEXUS_REPOSITORY}/${name}:${env.BUILD_NUMBER} -t ${env.NEXUS_REPOSITORY}/${name}:latest .
     echo ''
     echo Image size:
     docker images ${env.NEXUS_REPOSITORY}/${name}:${env.BUILD_NUMBER}
