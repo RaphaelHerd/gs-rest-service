@@ -1,11 +1,3 @@
-properties([
-    parameters([
-        string(defaultValue: '1.12.6', description: '', name: 'DOCKER_VERSION'),
-        string(defaultValue: 'v1.4.6', description: '', name: 'KUBECTL_VERSION')
-    ]),
-    pipelineTriggers([])
-])
-
 podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount', containers: [
 //    containerTemplate(name: 'openjdk8', image: 'openjdk:8-alpine', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'maven', image: 'maven', ttyEnabled: true, command: 'cat')
@@ -27,7 +19,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
                 stage('Prepare Environment') {
                     // Install Docker CLI
                     sh """
-                    curl -Lo /tmp/docker.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
+                    curl -Lo /tmp/docker.tgz https://get.docker.com/builds/Linux/x86_64/docker-1.12.6.tgz
                     mkdir /tmp/docker
                     tar -xf /tmp/docker.tgz -C /tmp/docker
                     find /tmp/docker -type f -executable -exec mv {} /usr/local/bin/ \\;
