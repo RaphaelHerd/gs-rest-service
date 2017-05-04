@@ -13,7 +13,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
         
         stage('maven') {
             container('maven') {
-                sh 'mvn -v'
+                sh 'mvn -f complete/pom.xml package'
             }
         }
     
