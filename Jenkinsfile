@@ -21,7 +21,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
             }
         }
         
-        stage('maven') {
+        stage('docker') {
             container('maven') {
                 sh 'docker version'
             }
