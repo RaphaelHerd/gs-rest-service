@@ -15,7 +15,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
             checkout scm
 
             env.NEXUS_URL = 'hub.itgo-devops.org:18443'
-            env.NEXUS_REPOSITORY = "${env.NEXUS_URL}/rest-mvn-sample"
+            env.NEXUS_REPOSITORY = "${env.NEXUS_URL}/hit"
             // write current date without newline at the end into file
             sh "echo -n `date -u` > utc-datetime"
             env.CONT_IMG_UTC_DATETIME = readFile 'utc-datetime'
@@ -29,26 +29,26 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
          container('docker') {
             try{
               stage ('docker Build') {
-                dockerbuild("tc-web")
+                dockerbuild("rest-mvn-sample")
               }
 
               stage ('docker push') {
                 docker.withRegistry("https://${env.NEXUS_URL}", 'Nexus-Admin') {
-                  dockerpush("tc-web")
+                  dockerpush("rest-mvn-sample")
                 }
               } // stage 'docker push' end
             } //try end
             finally {
               stage('cleaning up docker images') {
-                dockercleanup("tc-web")
+                dockercleanup("rest-mvn-sample")
               }
             } // finally end
           }
       stage('preparing deployment') {
         echo "Replacing all latest tags with current buildnumber ${env.BUILD_NUMBER}"
-        sh """
-          sed -i 's/:latest/:${env.BUILD_NUMBER}/g' k8s/*.yaml
-        """
+        //sh """
+        //  sed -i 's/:latest/:${env.BUILD_NUMBER}/g' k8s/*.yaml
+        //"""
       }
 
       container('kubectl') {
