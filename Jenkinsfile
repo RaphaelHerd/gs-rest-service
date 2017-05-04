@@ -1,6 +1,5 @@
 podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount', 
     containers: [
-//    containerTemplate(name: 'openjdk8', image: 'openjdk:8-alpine', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'jnlp', image: 'jenkinsci/jnlp-slave:2.62', args: '${computer.jnlpmac} ${computer.name}'),
     containerTemplate(name: 'docker', image: 'docker:17.04.0-ce', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'maven', image: 'maven', ttyEnabled: true, command: 'cat')
@@ -8,8 +7,6 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
     volumes: [
       hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')    
     ]) {
-    
-    
     
      node('build-pod') {
 
@@ -27,7 +24,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
             stage('maven') {
                sh 'mvn -f complete/pom.xml package'
             }
-
+          }
          container('docker') {
             try{
               stage ('docker Build') {
