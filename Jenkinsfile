@@ -21,15 +21,11 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
             }
         }
         
-        stage ('Tag and Push Docker Image to Nexus') {
-          // Rename Tag for Nexus
-          sh "docker tag ${env.DOCKER_IMAGE_NAME}:latest ${env.NEXUS_DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
-          sh "docker rmi ${env.DOCKER_IMAGE_NAME}:latest"
-          sh "docker tag ${env.NEXUS_DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER} ${env.NEXUS_DOCKER_IMAGE_NAME}:latest"
-          // Push
-          docker.withRegistry("https://${env.NEXUS_URL}", 'Nexus-Admin') {
-            sh "docker push ${env.NEXUS_DOCKER_IMAGE_NAME}:latest"
-            sh "docker push ${env.NEXUS_DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
-          }
+        stage('maven') {
+            container('maven') {
+                sh 'docker version'
+            }
+        }
+     
     }
 }
