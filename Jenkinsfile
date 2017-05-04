@@ -2,6 +2,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
     containers: [
     containerTemplate(name: 'jnlp', image: 'jenkinsci/jnlp-slave:2.62', args: '${computer.jnlpmac} ${computer.name}'),
     containerTemplate(name: 'docker', image: 'docker:17.04.0-ce', ttyEnabled: true, command: 'cat'),
+    containerTemplate(name: 'kubectl', image: 'lachlanevenson/k8s-kubectl:v1.5.7', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'maven', image: 'maven', ttyEnabled: true, command: 'cat')
    ],
     volumes: [
@@ -53,9 +54,10 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
       container('kubectl') {
         stage('deployment'){
           sh """
-            kubectl apply -f k8s/tc-web.yaml --namespace=tarifcheck --record=true
-            sleep 10
-            kubectl describe service tc-web-external --namespace=tarifcheck | grep 'LoadBalancer Ingress'
+           kubectl version
+           // kubectl apply -f k8s/tc-web.yaml --namespace=tarifcheck --record=true
+           // sleep 10
+           // kubectl describe service tc-web-external --namespace=tarifcheck | grep 'LoadBalancer Ingress'
           """
         }
       }
