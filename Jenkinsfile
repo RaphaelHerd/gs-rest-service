@@ -22,7 +22,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
           }
 
          container('maven') {
-            stage('maven') {
+            stage('build') {
                sh 'mvn -f complete/pom.xml package'
             }
           }
@@ -55,6 +55,10 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
         stage('deployment'){
           sh """
            kubectl version
+            // first deploy ns
+            kubectl apply -f k8s/namespace.yaml --namespace=sample-rest-ws --record=true
+            sleep 10
+            // deploy rest of service
             kubectl apply -f k8s --namespace=sample-rest-ws --record=true
             sleep 10
             kubectl describe service sample-rest-ws-external --namespace=sample-rest-ws | grep 'LoadBalancer Ingress'
