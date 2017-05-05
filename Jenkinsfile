@@ -40,7 +40,7 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
             } //try end
             finally {
               stage('cleaning up docker images') {
-               // dockercleanup("rest-mvn-sample")
+                dockercleanup("rest-mvn-sample")
               }
             } // finally end
           }
