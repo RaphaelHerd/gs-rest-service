@@ -45,23 +45,22 @@ podTemplate(label: 'build-pod', serviceAccount: 'jenkins-agents-serviceaccount',
             } // finally end
           }
       stage('preparing deployment') {
-   //     echo "Replacing all latest tags with current buildnumber ${env.BUILD_NUMBER}"
-        //sh """
-        //  sed -i 's/:latest/:${env.BUILD_NUMBER}/g' k8s/*.yaml
-        //"""
+        echo "Replacing all latest tags with current buildnumber ${env.BUILD_NUMBER}"
+        sh """
+          sed -i 's/:latest/:${env.BUILD_NUMBER}/g' k8s/*.yaml
+        """
       }
 
-     // container('kubectl') {
-     //   stage('deployment'){
-     //     sh """
-     //      kubectl version
-           // kubectl apply -f k8s/tc-web.yaml --namespace=tarifcheck --record=true
-           // sleep 10
-           // kubectl describe service tc-web-external --namespace=tarifcheck | grep 'LoadBalancer Ingress'
-     //     """
-     //   }
-     // }
-
+      container('kubectl') {
+        stage('deployment'){
+          sh """
+           kubectl version
+            kubectl apply -f k8s --namespace=sample-rest-ws --record=true
+            sleep 10
+            kubectl describe service sample-rest-ws-external --namespace=sample-rest-ws | grep 'LoadBalancer Ingress'
+          """
+       }
+      }
     } // end build-pod
 }
 
